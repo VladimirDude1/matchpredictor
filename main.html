@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Football Match Simulator</title>
+<style>
+  :root{
+    --card:#0f1720;
+    --card-2:#111827;
+    --muted: #9ca3af;
+    --accent1: #0ea5a4;
+    --accent2: #7c3aed;
+  }
+  html,body{height:100%;margin:0;background:#000; font-family: Inter,system-ui,Arial,Helvetica,sans-serif;}
+  .wrap{
+    min-height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    box-sizing:border-box;
+  }
+
+  .card{
+    width:960px;
+    max-width:100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:20px;
+    padding:22px;
+    box-shadow: 0 10px 40px rgba(10,10,10,0.7), 0 0 40px rgba(124,58,237,0.06);
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .scoreboard{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+  }
+
+  .team-col{
+    width:260px;
+    min-width:180px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+
+  .team-select{
+    width:100%;
+    background:var(--card-2);
+    border-radius:10px;
+    padding:8px 10px;
+    border:1px solid rgba(255,255,255,0.04);
+    color:#fff;
+    font-weight:600;
+    outline:none;
+    appearance:none;
+    cursor:pointer;
+  }
+
+  .logo-wrap{
+    width:120px;
+    height:120px;
+    border-radius:14px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  }
+
+  .logo{
+    max-width:92%;
+    max-height:92%;
+    display:block;
+  }
+
+  .fallback {
+    display:none;
+    width:92%;
+    text-align:center;
+    font-weight:800;
+    color:var(--muted);
+    font-size:20px;
+    letter-spacing:1px;
+  }
+
+  .team-name { margin-top:8px; font-weight:700; color:#fff; }
+
+  .center{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    padding:10px 8px;
+  }
+
+  .score-box{
+    background: linear-gradient(180deg, rgba(124,58,237,0.08), rgba(14,165,164,0.03));
+    padding:18px 28px;
+    border-radius:16px;
+    box-shadow: 0 8px 28px rgba(124,58,237,0.08);
+    min-width:220px;
+    text-align:center;
+  }
+
+  .score-text{
+    color:#fff;
+    font-size:56px;
+    font-weight:900;
+    letter-spacing:2px;
+  }
+
+  .score-sub { color:var(--muted); font-size:13px; margin-top:6px; }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-top:18px;
+  }
+
+  .btn {
+    background: linear-gradient(90deg,var(--accent2), var(--accent1));
+    color:white;
+    border:none;
+    padding:12px 26px;
+    border-radius:999px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow: 0 8px 28px rgba(124,58,237,0.22);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{ transform: scale(.99); }
+  .btn.secondary{
+    background: transparent;
+    border:1px solid rgba(255,255,255,0.06);
+    color:var(--muted);
+    box-shadow:none;
+    font-weight:700;
+  }
+
+  .goal-events-box {
+    background: linear-gradient(180deg, rgba(124,58,237,0.1), rgba(14,165,164,0.04));
+    border-radius:16px;
+    padding: 16px 24px;
+    margin-top: 20px;
+    min-height: 80px;
+    color: white;
+    font-weight: 600;
+    max-height: 160px;
+    overflow-y: auto;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+
+  @media (max-width:920px){
+    .scoreboard{ flex-direction:column; gap:16px; align-items:center; }
+    .team-col{ width:100%; flex-direction:row; gap:12px; justify-content:flex-start; }
+    .team-select{ flex:0 0 48%; }
+    .logo-wrap{ width:84px; height:84px; }
+    .score-text{ font-size:40px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-weight:800;font-size:18px">Football Match Simulator — 24/25 powers</div>
+      </div>
+
+      <div class="scoreboard">
+        <div class="team-col" id="leftCol">
+          <select id="homeSelect" class="team-select" aria-label="Home team"></select>
+
+          <div class="logo-wrap">
+            <img id="homeLogo" class="logo" src="" alt="">
+            <div id="homeFallback" class="fallback"></div>
+          </div>
+
+          <div class="team-name" id="homeName">Home</div>
+        </div>
+
+        <div class="center">
+          <div class="score-box">
+            <div class="score-text" id="scoreDisplay">0 - 0</div>
+            <div class="score-sub" id="expectedText">Expected: —</div>
+          </div>
+
+          <div class="controls">
+            <button class="btn" id="simulateBtn">Simulate</button>
+            <button class="btn secondary" id="resetBtn">Reset</button>
+          </div>
+          
+          <div class="goal-events-box" id="goalEvents">
+            No goals yet
+          </div>
+        </div>
+
+        <div class="team-col" id="rightCol">
+          <select id="awaySelect" class="team-select" aria-label="Away team"></select>
+
+          <div class="logo-wrap">
+            <img id="awayLogo" class="logo" src="" alt="">
+            <div id="awayFallback" class="fallback"></div>
+          </div>
+
+          <div class="team-name" id="awayName">Away</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const TEAMS = [
+  { id: 'LIV', name: 'Liverpool', power: 1990, logo: 'images/liverpool.png', players: ['Mohamed Salah', 'Dominik Szoboszlai', 'Hugo Ekitike', 'Cody Gakpo', 'Alexis Mac Allister', 'Florian Wirtz', 'Ryan Gravenberch'] },
+  { id: 'ARS', name: 'Arsenal', power: 1970, logo: 'images/arsenal.png', players: ['Viktor Gyokeres', 'Bukayo Saka', 'Martin Ødegaard', 'Gabriel Martinelli', 'Declan Rice', 'Mikel Merino', 'Martin Zubimendi'] },
+  { id: 'MAN_CITY', name: 'Manchester City', power: 1935, logo: 'images/man_city.png', players: ['Erling Haaland', 'Jeremy Doku', 'Omar Marmoush', 'Phil Foden', 'Rodri', 'Bernardo Silva'] },
+  { id: 'PSG', name: 'Paris Saint-Germain', power: 1995, logo: 'images/psg.png', players: ['Ousmane Dembele', 'Fabian Ruiz', 'Vitinha', 'Joao Neves', 'Khvicha Khvaratskhelia', 'Desire Doue', 'Bradley Barcola'] },
+  { id: 'RMA', name: 'Real Madrid', power: 1955, logo: 'images/real_madrid.png', players: ['Vinícius Júnior', 'Rodrygo', 'Jude Bellingham', 'Kylian Mbappe', 'Federico Valverde', 'Aurelian Tchouameni', 'Trent Alexander-Arnold'] },
+  { id: 'BAR', name: 'Barcelona', power: 1980, logo: 'images/barcelona.png', players: ['Robert Lewandowski', 'Lamine Yamal', 'Frenkie de Jong', 'Pedri Gonzalez', 'Dani Olmo', 'Raphinha'] },
+  { id: 'BAY', name: 'Bayern Munich', power: 1955, logo: 'images/bayern_munich.png', players: ['Michael Olise', 'Harry Kane', 'Jamal Musiala', 'Luis Diaz', 'Aleksandar Pavlovic', 'Joshua Kimmich'] },
+  { id: 'INT', name: 'Inter Milan', power: 1960, logo: 'images/inter_milan.png', players: ['Lautaro Martínez', 'Marcus Thuram', 'Nicolò Barella', 'Hakan Çalhanoğlu', 'Henrikh Mkhitaryan', 'Denzel Dumfries', 'Federico Dimarco'] },
+  { id: 'BEN', name: 'Benfica', power: 1550, logo: 'images/benfica.png', players: ['Vangelis Pavlidis', 'Franjo Ivanovic', 'Richard Rios', 'Enzo Barrenechea'] },
+  { id: 'POR', name: 'Porto', power: 1500, logo: 'images/porto.png', players: ['Samu Aghehowa', 'Pepe', 'Borja Sainz', 'Gabri Veiga'] },
+  { id: 'CRY', name: 'Crystal Palace', power: 1810, logo: 'images/crystal_palace.png', players: ['Jean-Philippe Mateta', 'Eberechi Eze', 'Ismaila Sarr', 'Daniel Munoz'] },
+  { id: 'NEW', name: 'Newcastle United', power: 1935, logo: 'images/newcastle_united.png', players: ['Alexander Isak', 'Anthony Gordon', 'Bruno Guimarães', 'Anthony Elanga', 'Sandro Tonali', 'Joelinton'] },
+  { id: 'NAP', name: 'Napoli', power: 1962, logo: 'images/napoli.png', players: ['Romelu Lukaku', 'Giacomo Raspadori', 'Scott McTominay', 'Stanislav Lobotka'] },
+  { id: 'ACM', name: 'AC Milan', power: 1600, logo: 'images/ac_milan.png', players: ['Rafael Leão', 'Noah Okafor', 'Yousoff Fofana', 'Alexis Saelemaekers', 'Ruben Loftus-Cheek'] },
+  { id: 'JUV', name: 'Juventus', power: 1570, logo: 'images/juventus.png', players: ['Dusan Vlahović', 'Kenan Yildiz', 'Francisco Conceincao', 'Khephrem Thuram'] },
+  { id: 'ATM', name: 'Atletico de Madrid', power: 1620, logo: 'images/atletico_madrid.png', players: ['Antoine Griezmann', 'Julian Alvarez', 'Alexander Sorloth', 'Connor Gallagher', 'Alex Baena', 'Giuliano Simeone'] },
+  { id: 'ATB', name: 'Athletic Bilbao', power: 1550, logo: 'images/athletic_bilbao.png', players: ['Iñaki Williams', 'Oihan Sancet', 'Nico Williams',] },
+  { id: 'MRS', name: 'Marseille', power: 1500, logo: 'images/marseille.png', players: ['Mason Greenwood', 'Adrien Rabiot', 'Amine Gouiri', 'Ismaila Bennacer'] },
+  { id: 'SPR', name: 'Tottenham Hotspurs', power: 1500, logo: 'images/spurs.png', players: ['James Maddison', 'Brennan Johnson', 'Dejan Kulusevski', 'Rodrigo Bentancur'] },
+  { id: 'MAN_UTD', name: 'Manchester United', power: 1500, logo: 'images/man_utd.png', players: ['Matheus Cunha', 'Bruno Fernandes', 'Bryan Mbeumo', 'Benjamin Sesko'] }
+];
+
+const homeSelect = document.getElementById('homeSelect');
+const awaySelect = document.getElementById('awaySelect');
+const homeLogo = document.getElementById('homeLogo');
+const awayLogo = document.getElementById('awayLogo');
+const homeFallback = document.getElementById('homeFallback');
+const awayFallback = document.getElementById('awayFallback');
+const homeName = document.getElementById('homeName');
+const awayName = document.getElementById('awayName');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const expectedText = document.getElementById('expectedText');
+const simulateBtn = document.getElementById('simulateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const goalEvents = document.getElementById('goalEvents');
+
+TEAMS.forEach(t => {
+  const o1 = document.createElement('option');
+  o1.value = t.id; o1.textContent = t.name;
+  homeSelect.appendChild(o1);
+
+  const o2 = document.createElement('option');
+  o2.value = t.id; o2.textContent = t.name;
+  awaySelect.appendChild(o2);
+});
+
+homeSelect.value = TEAMS[0].id;
+awaySelect.value = TEAMS[1].id;
+
+function getTeam(id){ return TEAMS.find(t=>t.id===id); }
+
+function updateSide(side){
+  const select = (side === 'home') ? homeSelect : awaySelect;
+  const logoEl = (side === 'home') ? homeLogo : awayLogo;
+  const fallbackEl = (side === 'home') ? homeFallback : awayFallback;
+  const nameEl = (side === 'home') ? homeName : awayName;
+
+  const team = getTeam(select.value);
+  if(!team) return;
+
+  fallbackEl.style.display = 'none';
+  logoEl.style.display = 'block';
+  logoEl.src = team.logo;
+  logoEl.alt = team.name + ' logo';
+
+  nameEl.textContent = team.name;
+}
+
+function attachFallbackHandlers(imgEl, fallbackEl, selectEl){
+  imgEl.onerror = function(){
+    imgEl.style.display = 'none';
+    const id = selectEl.value;
+    const t = getTeam(id);
+    const initials = (t && t.name) ? t.name.split(' ').slice(0,2).map(x=>x[0]).join('') : '??';
+    fallbackEl.textContent = initials;
+    fallbackEl.style.display = 'block';
+  };
+  imgEl.onload = function(){
+    imgEl.style.display = 'block';
+    fallbackEl.style.display = 'none';
+  };
+}
+
+attachFallbackHandlers(homeLogo, homeFallback, homeSelect);
+attachFallbackHandlers(awayLogo, awayFallback, awaySelect);
+updateSide('home');
+updateSide('away');
+
+homeSelect.addEventListener('change', ()=>{ updateSide('home'); updateExpectedText(); resetGoalEvents(); });
+awaySelect.addEventListener('change', ()=>{ updateSide('away'); updateExpectedText(); resetGoalEvents(); });
+
+function expectedGoals(powerA, powerB){
+  const avg = TEAMS.reduce((s,t)=>s+t.power,0)/TEAMS.length;
+  const base = 1.25;
+  const eA = base * (powerA/avg);
+  const eB = base * (powerB/avg);
+  return [eA, eB];
+}
+
+function samplePoisson(lambda){
+  if(lambda <= 0) return 0;
+  let L = Math.exp(-lambda);
+  let k = 0;
+  let p = 1.0;
+  while(p > L){
+    k++;
+    p *= Math.random();
+    if(k > 100) break;
+  }
+  return k - 1;
+}
+
+function updateExpectedText(){
+  const teamA = getTeam(homeSelect.value);
+  const teamB = getTeam(awaySelect.value);
+  if(!teamA || !teamB) return;
+  const [eA, eB] = expectedGoals(teamA.power, teamB.power);
+  expectedText.textContent = `Expected: ${eA.toFixed(2)} - ${eB.toFixed(2)}`;
+}
+
+function resetGoalEvents(){
+  goalEvents.textContent = 'No goals yet';
+}
+
+function simulateMatch(){
+  const teamA = getTeam(homeSelect.value);
+  const teamB = getTeam(awaySelect.value);
+  if(!teamA || !teamB) return;
+
+  const [expA, expB] = expectedGoals(teamA.power, teamB.power);
+  const goalsA = samplePoisson(expA);
+  const goalsB = samplePoisson(expB);
+
+  scoreDisplay.textContent = `${goalsA} - ${goalsB}`;
+
+  if(goalsA === 0 && goalsB === 0){
+    goalEvents.textContent = 'No goals yet';
+    return;
+  }
+
+  const events = [];
+
+  for(let i=0; i<goalsA; i++){
+    const min = Math.floor(Math.random()*90) + 1;
+    const scorer = teamA.players[Math.floor(Math.random()*teamA.players.length)];
+    events.push({min, team: teamA.name, scorer});
+  }
+
+  for(let i=0; i<goalsB; i++){
+    const min = Math.floor(Math.random()*90) + 1;
+    const scorer = teamB.players[Math.floor(Math.random()*teamB.players.length)];
+    events.push({min, team: teamB.name, scorer});
+  }
+
+  events.sort((a,b) => a.min - b.min);
+
+goalEvents.innerHTML = '';
+events.forEach(e=>{
+  const div = document.createElement('div');
+
+  const img = document.createElement('img');
+  img.src = 'images/goal.png';
+  img.alt = 'Goal';
+  img.style.width = '18px';
+  img.style.height = '18px';
+  img.style.marginRight = '6px';
+
+  div.style.display = 'flex';
+  div.style.alignItems = 'center';
+
+  div.appendChild(img);
+  const text = document.createTextNode(`${e.min}' - ${e.team} - ${e.scorer}`);
+  div.appendChild(text);
+
+  goalEvents.appendChild(div);
+});
+
+}
+
+updateExpectedText();
+
+simulateBtn.addEventListener('click', ()=>{
+  simulateMatch();
+});
+
+resetBtn.addEventListener('click', ()=>{
+  scoreDisplay.textContent = '0 - 0';
+  resetGoalEvents();
+});
+
+</script>
+</body>
+</html>
